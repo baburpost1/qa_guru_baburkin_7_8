@@ -1,0 +1,6 @@
+.idea
+models
+README.md
+/test_*
+users.csv
+homework/.pytest_cache
