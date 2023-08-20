@@ -11,6 +11,11 @@ def product():
     return Product("book", 100, "This is a book", 1000)
 
 
+@pytest.fixture()
+def cart():
+    return Cart()
+
+
 class TestProducts:
     """
     Тестовый класс - это способ группировки ваших тестов по какой-то тематике
@@ -18,10 +23,10 @@ class TestProducts:
     """
 
     def test_product_check_quantity(self, product):
-        assert product.check_quantity(product.quantity-1)
+        assert product.check_quantity(product.quantity - 1)
         assert product.check_quantity(product.quantity)
-        assert not product.check_quantity(product.quantity+1), (f"Недостаточное количество {product.name} на складе. "
-                                                                f"Максмальное количество {product.quantity} шт.")
+        assert not product.check_quantity(product.quantity + 1), (f"Недостаточное количество {product.name} на складе. "
+                                                                  f"Максмальное количество {product.quantity} шт.")
         # TODO напишите проверки на метод check_quantity
 
     def test_product_buy(self, product):
@@ -32,54 +37,69 @@ class TestProducts:
         # TODO напишите проверки на метод buy
 
     def test_product_buy_more_than_available(self, product):
-        buying_quantity = product.quantity+1
+        buying_quantity = product.quantity + 1
         try:
             product.buy(buying_quantity)
         except ValueError:
             return True
         else:
-            assert False #не придумал как нормально уронить тест, return False не сработал
+            assert False  # не придумал как нормально уронить тест, return False не сработал
 
         # TODO напишите проверки на метод buy,
         #  которые ожидают ошибку ValueError при попытке купить больше, чем есть в наличии
 
 
-
 class TestCart:
-    cart = Cart
-    def test_add_product(self, product):
-        Cart
-        # cart.add_product(productk)
-        # assert product in cart.products
+    def test_add_product(self, product, cart):
+        cart.add_product(product)
+        assert product in cart.products
+        cart.add_product(product, buy_count=2)
+        assert cart.products.get(product) == 3
+        assert cart.products.__len__() == 1
 
+    def test_remove_product_wo_remove_count(self, product, cart):
+        cart.add_product(product, buy_count=3)
+        cart.remove_product(product)
+        assert product not in cart.products
 
-    # def add_product(self, product: Product, buy_count=1):
-    #     if not self.products.get(product):
-    #         self.products.update(product=buy_count)
-    #     else:
-    #         self.products.update(product=self.products.get(product) + buy_count)
-    #     return self.products
-    #     """
-    #     Метод добавления продукта в корзину.
-    #     Если продукт уже есть в корзине, то увеличиваем количество
-    #     """
-    #     raise NotImplementedError
-    #
-    # def remove_product(self, product: Product, remove_count=None):
-    #     """
-    #     Метод удаления продукта из корзины.
-    #     Если remove_count не передан, то удаляется вся позиция
-    #     Если remove_count больше, чем количество продуктов в позиции, то удаляется вся позиция
-    #     """
-    #     raise NotImplementedError
-    #
-    # def clear(self):
-    #     raise NotImplementedError
-    #
-    # def get_total_price(self) -> float:
-    #     raise NotImplementedError
-    #
-    # def buy(self):
+    def test_remove_product_remove_count_more_then_quantity(self, product, cart):
+        cart.add_product(product, buy_count=1)
+        cart.remove_product(product, remove_count=2)
+        assert product not in cart.products
+
+    def test_remove_product_from_empty_cart(self, product, cart):
+        cart.add_product(product, buy_count=1)
+        try:
+            cart.remove_product(product)
+        except KeyError:
+            assert True
+        else:
+            assert False
+
+    def test_clear_cart(self, product, cart):
+        cart.add_product(product)
+        cart.clear()
+        assert len(cart.products) == 0, f"После очистки в корзине остался товар: {product.name}"
+
+    def test_total_price(self, product, cart):
+        cart.add_product(product, buy_count=3)
+        total_price = 3 * product.price
+        assert total_price == cart.get_total_price()
+
+    def test_buy_enough_quantity(self, product, cart):
+        cart.add_product(product, product.quantity - 1)
+        products_not_enough_quantity = cart.buy()
+        assert len(products_not_enough_quantity) == 0
+        assert product.quantity == 1
+
+    def test_buy_not_enough_quantity(self, product, cart):
+        cart.add_product(product, product.quantity + 1)
+        try:
+            cart.buy()
+        except ValueError:
+            assert True
+        else:
+            assert False
 
     """
     TODO Напишите тесты на методы класса Cart

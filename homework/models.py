@@ -19,7 +19,6 @@ class Product:
         else:
             return False
 
-        # Сделать человекочитаемую ошибку
         """
         TODO Верните True если количество продукта больше или равно запрашиваемому
             и False в обратном случае
@@ -57,33 +56,57 @@ class Cart:
 
     def add_product(self, product: Product, buy_count=1):
         if not self.products.get(product):
-            self.products.update(product=buy_count)
-        else: self.products.update(product=self.products.get(product)+buy_count)
+            product_name = product.name
+            self.products[product] = buy_count
+        else:
+            self.products[product] = self.products.get(product) + buy_count
         return self.products
         """
         Метод добавления продукта в корзину.
         Если продукт уже есть в корзине, то увеличиваем количество
         """
-        raise NotImplementedError
 
     def remove_product(self, product: Product, remove_count=None):
+        if remove_count == None or remove_count > self.products.get(product):
+            self.products.pop(product)
+        else:
+            self.products[product] = self.products.get(product) - remove_count
         """
         Метод удаления продукта из корзины.
         Если remove_count не передан, то удаляется вся позиция
         Если remove_count больше, чем количество продуктов в позиции, то удаляется вся позиция
         """
-        raise NotImplementedError
 
     def clear(self):
-        raise NotImplementedError
+        self.products.clear()
 
     def get_total_price(self) -> float:
-        raise NotImplementedError
+        total_price = 0
+        for product in self.products:
+            total_price = product.price * self.products.get(product)
+        return total_price
 
     def buy(self):
+        """
+        Если количества товара на складе хватает, то он списывается на величину указанную в корзине и удаляется из неё
+        Если количества товара на складе НЕ хватает, то товар остаётся в корзине, списание со склада не происходит
+        """
+        product_not_enough_quantity = {}
+        for product in self.products:
+            if not product.check_quantity(self.products.get(product)):
+                product_not_enough_quantity[product] = self.products.get(product)
+                continue
+            else:
+                product.quantity = product.quantity - self.products.get(product)
+        self.products.clear()
+        # Если нужно вернуть просто ValueError, то понятно, что не нужно возвращать словарь с продуктами
+        if len(product_not_enough_quantity) > 0:
+            return ValueError
+        else:
+            return product_not_enough_quantity
+
         """
         Метод покупки.
         Учтите, что товаров может не хватать на складе.
         В этом случае нужно выбросить исключение ValueError
         """
-        raise NotImplementedError
