@@ -95,13 +95,12 @@ class Cart:
         for product in self.products:
             if not product.check_quantity(self.products.get(product)):
                 product_not_enough_quantity[product] = self.products.get(product)
-                continue
             else:
                 product.quantity = product.quantity - self.products.get(product)
         self.products.clear()
         # Если нужно вернуть просто ValueError, то понятно, что не нужно возвращать словарь с продуктами
         if len(product_not_enough_quantity) > 0:
-            return ValueError
+            raise ValueError
         else:
             return product_not_enough_quantity
 

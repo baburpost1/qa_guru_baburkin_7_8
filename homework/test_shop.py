@@ -68,7 +68,6 @@ class TestCart:
         assert product not in cart.products
 
     def test_remove_product_from_empty_cart(self, product, cart):
-        cart.add_product(product, buy_count=1)
         try:
             cart.remove_product(product)
         except KeyError:
