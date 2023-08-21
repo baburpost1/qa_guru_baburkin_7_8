@@ -2,7 +2,6 @@
 Протестируйте классы из модуля homework/models.py
 """
 import pytest
-
 from homework.models import Product, Cart
 
 
@@ -23,33 +22,35 @@ class TestProducts:
     """
 
     def test_product_check_quantity(self, product):
+        # TODO напишите проверки на метод check_quantity
         assert product.check_quantity(product.quantity - 1)
         assert product.check_quantity(product.quantity)
         assert not product.check_quantity(product.quantity + 1), (f"Недостаточное количество {product.name} на складе. "
                                                                   f"Максмальное количество {product.quantity} шт.")
-        # TODO напишите проверки на метод check_quantity
 
     def test_product_buy(self, product):
+        # TODO напишите проверки на метод buy
         buying_quantity = 1
         product_quantity_before_sell = product.quantity
         remaining_quantity = product.buy(buying_quantity)
         assert remaining_quantity == product_quantity_before_sell - buying_quantity
-        # TODO напишите проверки на метод buy
 
     def test_product_buy_more_than_available(self, product):
-        buying_quantity = product.quantity + 1
-        try:
-            product.buy(buying_quantity)
-        except ValueError:
-            return True
-        else:
-            assert False  # не придумал как нормально уронить тест, return False не сработал
-
         # TODO напишите проверки на метод buy,
         #  которые ожидают ошибку ValueError при попытке купить больше, чем есть в наличии
+        buying_quantity = product.quantity + 1
+        with pytest.raises(ValueError):
+            product.buy(buying_quantity)
 
 
 class TestCart:
+    """
+    TODO Напишите тесты на методы класса Cart
+        На каждый метод у вас должен получиться отдельный тест
+        На некоторые методы у вас может быть несколько тестов.
+        Например, негативные тесты, ожидающие ошибку (используйте pytest.raises, чтобы проверить это)
+    """
+
     def test_add_product(self, product, cart):
         cart.add_product(product)
         assert product in cart.products
@@ -68,12 +69,8 @@ class TestCart:
         assert product not in cart.products
 
     def test_remove_product_from_empty_cart(self, product, cart):
-        try:
+        with pytest.raises(KeyError):
             cart.remove_product(product)
-        except KeyError:
-            assert True
-        else:
-            assert False
 
     def test_clear_cart(self, product, cart):
         cart.add_product(product)
@@ -92,17 +89,7 @@ class TestCart:
         assert product.quantity == 1
 
     def test_buy_not_enough_quantity(self, product, cart):
-        cart.add_product(product, product.quantity + 1)
-        try:
-            cart.buy()
-        except ValueError:
-            assert True
-        else:
-            assert False
 
-    """
-    TODO Напишите тесты на методы класса Cart
-        На каждый метод у вас должен получиться отдельный тест
-        На некоторые методы у вас может быть несколько тестов.
-        Например, негативные тесты, ожидающие ошибку (используйте pytest.raises, чтобы проверить это)
-    """
+        cart.add_product(product, product.quantity + 1)
+        with pytest.raises(ValueError):
+            cart.buy()
